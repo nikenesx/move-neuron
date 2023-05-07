@@ -2,11 +2,14 @@
 # (изменять только в случае изменения формата входных данных).
 DATA_VECTORS_START_LINE = 7
 
+
 # Количество датчиков, которое используется для обучения сети.
-SENSORS_COUNT = 8
+SENSORS_COUNT = 4
+
 
 # Директория с входными данными.
-DATASET_PATH = 'dataset2/'
+DATASET_PATH = 'dataset1/'
+
 
 TRAIN_MODEL_OPTIONS = {
     # Размер батча. Определяет, через какое кол-во прогона входных векторов будут корректироваться веса.
@@ -26,3 +29,6 @@ TRAIN_MODEL_OPTIONS = {
     # Рекомендованные значения: от 0.1 до 0.3
     'validation_split': 0.3,
 }
+
+
+MODEL_NAME = 'move_types_model.h5'

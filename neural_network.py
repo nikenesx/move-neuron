@@ -7,13 +7,11 @@ from keras.utils import to_categorical
 
 from charts_utils import save_loss_chart, save_accuracy_chart
 from constants import MoveTypes
-from settings import TRAIN_MODEL_OPTIONS
+from settings import TRAIN_MODEL_OPTIONS, MODEL_NAME, DATASET_PATH
 from utils import read_input_data, get_input_and_expected_vectors, get_max_sensor_value
 
 # Отключение использования CUDA ядер
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
-MODEL_NAME = 'move_types_model.h5'
 
 
 def train_model(saved_model_name: str, show_stat: bool = False) -> None:
@@ -33,7 +31,6 @@ def train_model(saved_model_name: str, show_stat: bool = False) -> None:
     model = Sequential([
         Dense(256, activation='relu'),
         Dense(512, activation='relu'),
-        Dense(256, activation='relu'),
         Dense(6, activation='softmax')
     ])
 
@@ -47,6 +44,8 @@ def train_model(saved_model_name: str, show_stat: bool = False) -> None:
         validation_split=TRAIN_MODEL_OPTIONS['validation_split'],
     )
     model.save(saved_model_name)
+    with open(f'max_value_{DATASET_PATH}.txt', 'w') as file:
+        file.write(str(max_value))
 
     accuracy = model.evaluate(input_vectors, result_values_cat)
     accuracy_value = round(float(accuracy[1] * 100), 2)

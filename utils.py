@@ -23,14 +23,18 @@ def read_input_data() -> INPUT_VECTOR_TYPE:
             with open(data_file) as file:
                 lines: Iterable[str] = file.readlines()
 
-            data_lines: Iterable[str] = lines[DATA_VECTORS_START_LINE:]
-            striped_lines: Iterator[str] = map(lambda line: line.strip(), data_lines)
-            filtered_lines: Iterator[str] = filter(lambda line: line, striped_lines)
-            splitted_lines: Iterator[list[str]] = map(lambda line: line.split()[1:], filtered_lines)
-
-            move_type_data_dict[move_type_dir.stem].extend(splitted_lines)
+            processed_lines = process_data_lines(lines=lines)
+            move_type_data_dict[move_type_dir.stem].extend(processed_lines)
 
     return move_type_data_dict
+
+
+def process_data_lines(lines: Iterable[str]) -> Iterator[list[str]]:
+    data_lines: Iterable[str] = lines[DATA_VECTORS_START_LINE:]
+    striped_lines: Iterator[str] = map(lambda line: line.strip(), data_lines)
+    filtered_lines: Iterator[str] = filter(lambda line: line, striped_lines)
+
+    return map(lambda line: line.split()[1:], filtered_lines)
 
 
 def get_input_and_expected_vectors(*, input_data: INPUT_VECTOR_TYPE) -> tuple[list[list[float]], list[int]]:
