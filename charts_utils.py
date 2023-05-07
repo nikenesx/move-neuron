@@ -4,7 +4,8 @@ from keras import Sequential
 from keras.callbacks import History
 from matplotlib import pyplot as plt
 
-from neural_network import ACCURACY_CHARTS_DIR_NAME, LOSS_CHARTS_DIR_NAME
+LOSS_CHARTS_DIR_NAME = 'loss_charts/'
+ACCURACY_CHARTS_DIR_NAME = 'accuracy_charts/'
 
 
 def save_accuracy_chart(fitted_model: Sequential, model_history: History, batch_size: int) -> None:
