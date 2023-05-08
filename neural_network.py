@@ -25,12 +25,15 @@ def train_model(saved_model_name: str, show_stat: bool = False) -> None:
     input_vectors, result_values = get_input_and_expected_vectors(input_data=sensor_data_vectors)
     max_value = get_max_sensor_value(data=input_vectors)
 
+    with open(f'max_value_{DATASET_PATH}.txt', 'w') as file:
+        file.write(str(max_value))
+
     input_vectors = np.array(input_vectors) / max_value
     result_values_cat = to_categorical(np.array(result_values), len(MoveTypes.NUMS))
 
     model = Sequential([
+        Dense(1024, activation='relu'),
         Dense(256, activation='relu'),
-        Dense(512, activation='relu'),
         Dense(6, activation='softmax')
     ])
 
@@ -44,8 +47,6 @@ def train_model(saved_model_name: str, show_stat: bool = False) -> None:
         validation_split=TRAIN_MODEL_OPTIONS['validation_split'],
     )
     model.save(saved_model_name)
-    with open(f'max_value_{DATASET_PATH}.txt', 'w') as file:
-        file.write(str(max_value))
 
     accuracy = model.evaluate(input_vectors, result_values_cat)
     accuracy_value = round(float(accuracy[1] * 100), 2)

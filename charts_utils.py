@@ -70,3 +70,26 @@ def save_loss_chart(fitted_model: Sequential, model_history: History, batch_size
     figure.savefig(f'{LOSS_CHARTS_DIR_NAME}/{neurons_count}_{batch_size}_{epochs_count}_loss.jpg')
 
     plt.close()
+
+
+def draw_plot(x, y) -> None:
+    chart_title = 'Тип движения'
+    train_data_label = 'Обучающая выборка'
+
+
+    figure, axes = plt.subplots(1, 1, figsize=(16, 10))
+    axes.grid(color='lightgray', which='both', zorder=0)
+
+    axes.plot(x, y, label=train_data_label, color='#03bcff')
+
+    axes.set_title(chart_title)
+    axes.set_xlabel('Время, сек.')
+    axes.set_ylabel(chart_title)
+    axes.legend()
+
+    if not os.path.exists(ACCURACY_CHARTS_DIR_NAME):
+        os.mkdir(ACCURACY_CHARTS_DIR_NAME)
+
+    figure.savefig(f'wtf.jpg')
+
+    plt.close()

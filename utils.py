@@ -34,7 +34,7 @@ def process_data_lines(lines: Iterable[str]) -> Iterator[list[str]]:
     striped_lines: Iterator[str] = map(lambda line: line.strip(), data_lines)
     filtered_lines: Iterator[str] = filter(lambda line: line, striped_lines)
 
-    return map(lambda line: line.split()[1:], filtered_lines)
+    return list(map(lambda line: line.split()[1:], filtered_lines))
 
 
 def get_input_and_expected_vectors(*, input_data: INPUT_VECTOR_TYPE) -> tuple[list[list[float]], list[int]]:
