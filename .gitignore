@@ -1,7 +1,6 @@
 __pycache__
 .idea
 venv
-trained_models/move_types_model.h5
 datasets
 charts
 trained_models
