@@ -4,9 +4,9 @@ from keras.models import load_model
 
 from charts_utils import draw_plot
 from settings import MODEL_NAME, DATA_VECTORS_START_LINE
-from utils import process_data_lines
+from utils import process_data_lines, process_data_lines2
 
-DIFFERENT_MOVES_PATH = 'different_moves_2.txt'
+DIFFERENT_MOVES_PATH = 'datasets/different_moves_2.txt'
 
 
 def time_from_line(line):
@@ -14,9 +14,28 @@ def time_from_line(line):
     return float(splitted_line[0])
 
 
+def draw_azaza():
+    with open('max_value_dataset2.txt') as file:
+        max_value = float(file.readline())
+
+    with open(DIFFERENT_MOVES_PATH) as file:
+        lines = file.readlines()
+
+    time_values = [time_from_line(line=line) for line in lines[DATA_VECTORS_START_LINE:] if line.strip()]
+    processed_lines = process_data_lines2(lines=lines)
+    x1 = [float(line[1]) for line in processed_lines]
+    x2 = [float(line[2]) for line in processed_lines]
+    x3 = [float(line[3]) for line in processed_lines]
+    x4 = [float(line[4]) for line in processed_lines]
+    draw_plot(time_values, x1, name='plot1', label='1 Датчик')
+    draw_plot(time_values, x2, name='plot2', label='2 Датчик')
+    draw_plot(time_values, x3, name='plot3', label='3 Датчик')
+    draw_plot(time_values, x4, name='plot4', label='4 Датчик')
+
+
 def main():
     model = load_model(MODEL_NAME)
-    with open('max_value_dataset1.txt') as file:
+    with open('max_value_dataset2.txt') as file:
         max_value = float(file.readline())
 
     with open(DIFFERENT_MOVES_PATH) as file:
@@ -43,4 +62,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    draw_azaza()

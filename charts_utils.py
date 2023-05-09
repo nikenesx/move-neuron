@@ -72,8 +72,8 @@ def save_loss_chart(fitted_model: Sequential, model_history: History, batch_size
     plt.close()
 
 
-def draw_plot(x, y) -> None:
-    chart_title = 'Тип движения'
+def draw_plot(x, y, name='plot1', label='') -> None:
+    chart_title = label
     train_data_label = 'Обучающая выборка'
 
 
@@ -90,6 +90,6 @@ def draw_plot(x, y) -> None:
     if not os.path.exists(ACCURACY_CHARTS_DIR_NAME):
         os.mkdir(ACCURACY_CHARTS_DIR_NAME)
 
-    figure.savefig(f'wtf.jpg')
+    figure.savefig(name)
 
     plt.close()

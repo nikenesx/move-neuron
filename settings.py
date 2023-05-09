@@ -9,11 +9,13 @@ DATA_VECTORS_START_LINE: int = 7
 SENSORS_COUNT: int = 4
 
 
-WINDOW_SIZE: float = 0.2
+WINDOW_SIZE: float = 0.1
 
 
 # Директория с входными данными.
-DATASET_PATH: str = 'dataset2'
+DATASET_PATH: str = 'datasets/dataset3'
+
+DATASET_PATHS: list[str] = ['datasets/dataset3']
 
 
 TRAIN_MODEL_OPTIONS: dict[str, Union[int, float]] = {
@@ -26,7 +28,7 @@ TRAIN_MODEL_OPTIONS: dict[str, Union[int, float]] = {
     # Количество эпох обучения. Определяет, сколько раз будут прогоняться входные данные. Подача всех векторов на вход
     # для обучения один раз = 1 эпоха.
     # Возможные значения: от 1 до ∞
-    'epochs_count': 1000,
+    'epochs_count': 100,
 
     # Размер выборки валидации. Определяет, какой процент от входных данных будет использоваться для выборки валидации
     # (необходимо для предотвращения переобучения модели).
