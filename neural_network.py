@@ -7,6 +7,7 @@ from keras.utils import to_categorical
 
 from charts_utils import save_loss_chart, save_accuracy_chart
 from constants import MoveTypes
+from normalize import normalize_input_data
 from settings import TRAIN_MODEL_OPTIONS, MODEL_NAME, DATASET_PATH
 from utils import read_input_data, get_input_and_expected_vectors, get_max_sensor_value
 
@@ -21,7 +22,7 @@ def train_model(saved_model_name: str, show_stat: bool = False) -> None:
     :param saved_model_name: Название обученной модели
     :param show_stat: Если True, то сохраняются графики точности и потерь
     """
-    sensor_data_vectors = read_input_data()
+    sensor_data_vectors = normalize_input_data()
     input_vectors, result_values = get_input_and_expected_vectors(input_data=sensor_data_vectors)
     max_value = get_max_sensor_value(data=input_vectors)
 
@@ -32,7 +33,8 @@ def train_model(saved_model_name: str, show_stat: bool = False) -> None:
     result_values_cat = to_categorical(np.array(result_values), len(MoveTypes.NUMS))
 
     model = Sequential([
-        Dense(1024, activation='relu'),
+        Dense(512, activation='relu'),
+        Dense(256, activation='relu'),
         Dense(256, activation='relu'),
         Dense(6, activation='softmax')
     ])
