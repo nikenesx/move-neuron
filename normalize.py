@@ -2,10 +2,10 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Iterable, Iterator
 
-from settings import DATASET_PATH, DATA_VECTORS_START_LINE, SENSORS_COUNT, WINDOW_SIZE
+from settings import DATASET_PATH, DATA_VECTORS_START_LINE, SENSORS_COUNT
 
 
-def normalize_input_data(window_size: int = WINDOW_SIZE):
+def normalize_input_data(window_size: int = NORMALIZE_WINDOW_SIZE):
     dataset_path: Path = Path(DATASET_PATH)
     move_type_data_dict: dict = defaultdict(list)
 
