@@ -2,7 +2,7 @@ import copy
 from collections import defaultdict
 from pathlib import Path
 
-from settings import DATASET_PATHS, SENSORS_COUNT, DATA_VECTORS_START_LINE, AVERAGE_READINGS_COUNT
+from settings import DATASET_PATHS, SENSORS_COUNT, DATA_VECTORS_START_LINE, AVERAGE_READINGS_COUNT, MAX_READINGS_COUNT
 
 
 class DataProcess:
@@ -11,6 +11,8 @@ class DataProcess:
     __instance = None
 
     dataset_by_move_types = defaultdict(list)
+    normalized_dataset = None
+
     dataset_paths = DATASET_PATHS
     sensors_count = SENSORS_COUNT
 
@@ -45,7 +47,7 @@ class DataProcess:
 
         return dataset_by_move_types
 
-    def _convert_data_dict_values_to_lists(self):
+    def _convert_data_dict_values_to_lists(self) -> dict[str, list[list[float]]]:
         """
         Проходит по каждому типу движения, преобразовывая каждую строку с данными в список с численными значениями.
         """
@@ -62,7 +64,10 @@ class DataProcess:
 
         return self.dataset_by_move_types
 
-    def _calculate_average_window(self, *, dataset_dict):
+    def _calculate_average_window(self, *, dataset_dict: dict[str, list[list[float]]]) -> dict[str, list[list[float]]]:
+        """
+        Нормализует входной датасет, вычисляя среднее-скользящее каждого элемента
+        """
         calculated_dict = copy.deepcopy(dataset_dict)
 
         for move_type, lines_lists in calculated_dict.items():
@@ -71,7 +76,6 @@ class DataProcess:
 
             for sensor_number in range(self.sensors_count):
                 while True:
-
                     try:
                         for line_number in range(start_reading, start_reading + AVERAGE_READINGS_COUNT):
                             sum_values += lines_lists[line_number][sensor_number]
@@ -79,7 +83,6 @@ class DataProcess:
                         for i in range(start_reading, line_number):
                             index = abs(line_number - start_reading)
                             lines_lists[i][sensor_number] = abs(lines_lists[i][sensor_number] - sum_values / index)
-
                         break
 
                     readings_average_value = sum_values / AVERAGE_READINGS_COUNT
@@ -88,7 +91,6 @@ class DataProcess:
                         lines_lists[line_number][sensor_number] = abs(
                             lines_lists[line_number][sensor_number] - readings_average_value
                         )
-
                     sum_values = 0
                     start_reading += AVERAGE_READINGS_COUNT
 
@@ -97,12 +99,46 @@ class DataProcess:
 
         return calculated_dict
 
-    def normalize_dataset_by_move_types(self):
+    def _calculate_max_window(self, *, dataset_dict: dict[str, list[list[float]]]) -> dict[str, list[list[float]]]:
+        """
+        Нормализует датасет, находя максимальное значение в окне MAX_READINGS_COUNT каждого датчика
+        """
+        calculated_dict = defaultdict(list)
+
+        for move_type, lines_lists in dataset_dict.items():
+            start_reading = 0
+            for sensor_number in range(self.sensors_count):
+                current_index = 0
+                while True:
+                    try:
+                        list_to_get_max = [
+                            lines_lists[line_number][sensor_number]
+                            for line_number in range(start_reading, start_reading + MAX_READINGS_COUNT)
+                        ]
+                        max_window_value = max(list_to_get_max)
+                    except IndexError:
+                        break
+
+                    try:
+                        calculated_dict[move_type][current_index].append(max_window_value)
+                    except IndexError:
+                        calculated_dict[move_type].append([])
+                        calculated_dict[move_type][current_index].append(max_window_value)
+
+                    current_index += 1
+                    start_reading += MAX_READINGS_COUNT
+
+                start_reading = 0
+
+        return calculated_dict
+
+    def get_normalized_dataset(self) -> dict[str, list[list[float]]]:
+        """Считывает набор данных из файлов, нормализует и возвращает его"""
         converted_dataset = self._convert_data_dict_values_to_lists()
         average_calculated_dataset = self._calculate_average_window(dataset_dict=converted_dataset)
-        print(average_calculated_dataset)
+        return self._calculate_max_window(dataset_dict=average_calculated_dataset)
 
 
 if __name__ == '__main__':
     data_process = DataProcess()
-    data_process.normalize_dataset_by_move_types()
+    data_process.get_normalized_dataset()
