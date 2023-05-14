@@ -5,7 +5,7 @@ from typing import Iterable, Iterator
 from settings import DATASET_PATH, DATA_VECTORS_START_LINE, SENSORS_COUNT
 
 
-def normalize_input_data(window_size: int = NORMALIZE_WINDOW_SIZE):
+def normalize_input_data(window_size: int):
     dataset_path: Path = Path(DATASET_PATH)
     move_type_data_dict: dict = defaultdict(list)
 

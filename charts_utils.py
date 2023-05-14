@@ -72,24 +72,39 @@ def save_loss_chart(fitted_model: Sequential, model_history: History, batch_size
     plt.close()
 
 
-def draw_plot(x, y, name='plot1', label='') -> None:
-    chart_title = label
-    train_data_label = 'Обучающая выборка'
-
-
+def draw_plot(
+    x1,
+    y1,
+    x2=None,
+    y2=None,
+    x3=None,
+    y3=None,
+    chart_title='График',
+    label1=None,
+    label2=None,
+    label3=None,
+    path_to_save='plot'
+) -> None:
+    chart_title = chart_title
     figure, axes = plt.subplots(1, 1, figsize=(16, 10))
     axes.grid(color='lightgray', which='both', zorder=0)
 
-    axes.plot(x, y, label=train_data_label, color='#03bcff')
+    axes.plot(x1, y1, label=label1, color='#03bcff')
+
+    if x2 and y2:
+        axes.plot(x2, y2, label=label2, color='#07b836')
+
+    if x3 and y3:
+        axes.plot(x3, y3, label=label3, color='#d6046a')
 
     axes.set_title(chart_title)
-    axes.set_xlabel('Время, сек.')
-    axes.set_ylabel(chart_title)
+    axes.set_xlabel('Номер отсчета')
+    axes.set_ylabel('Значение датчика')
     axes.legend()
 
     if not os.path.exists(ACCURACY_CHARTS_DIR_NAME):
         os.mkdir(ACCURACY_CHARTS_DIR_NAME)
 
-    figure.savefig(name)
+    figure.savefig(path_to_save)
 
     plt.close()

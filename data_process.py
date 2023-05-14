@@ -1,8 +1,12 @@
 import copy
 from collections import defaultdict
+from itertools import chain
 from pathlib import Path
 
-from settings import DATASET_PATHS, SENSORS_COUNT, DATA_VECTORS_START_LINE, AVERAGE_READINGS_COUNT, MAX_READINGS_COUNT
+from charts_utils import draw_plot
+from constants import MoveTypes
+from settings import DATASET_PATHS, SENSORS_COUNT, DATA_VECTORS_START_LINE, AVERAGE_READINGS_COUNT, MAX_READINGS_COUNT, \
+    VALUES_THRESHOLDS, CHARTS_PATH
 
 
 class DataProcess:
@@ -136,7 +140,86 @@ class DataProcess:
         """Считывает набор данных из файлов, нормализует и возвращает его"""
         converted_dataset = self._convert_data_dict_values_to_lists()
         average_calculated_dataset = self._calculate_average_window(dataset_dict=converted_dataset)
-        return self._calculate_max_window(dataset_dict=average_calculated_dataset)
+        max_calculated_dataset = self._calculate_max_window(dataset_dict=average_calculated_dataset)
+        normalized_by_threshold, source_data = self.normalize_dataset_by_threshold(
+            dataset=average_calculated_dataset,
+            source_dataset=converted_dataset,
+        )
+
+        self.save_charts_normalized_data(
+            converted_dataset=converted_dataset,
+            average_calculated_dataset=average_calculated_dataset,
+            max_calculated_dataset=max_calculated_dataset,
+        )
+        self.save_charts_source_data(source_data=source_data)
+
+        return normalized_by_threshold
+
+    @staticmethod
+    def normalize_dataset_by_threshold(*, dataset: dict, source_dataset: dict):
+        calculated_dict = defaultdict(list)
+        source_dataset_dict = defaultdict(list)
+
+        for move_type, lines in dataset.items():
+            sensor_number = VALUES_THRESHOLDS[move_type]['sensor']
+            threshold = VALUES_THRESHOLDS[move_type]['threshold']
+
+            for index in range(len(lines)):
+                if lines[index][sensor_number] >= threshold:
+                    calculated_dict[move_type].append(lines[index])
+                    source_dataset_dict[move_type].append(source_dataset[move_type][index])
+
+        return calculated_dict, source_dataset_dict
+
+    def save_charts_normalized_data(self, *, converted_dataset, average_calculated_dataset, max_calculated_dataset):
+        for move_type in max_calculated_dataset:
+            for sensor in range(self.sensors_count):
+                y1 = tuple(values[sensor] for values in converted_dataset[move_type])[:5000]
+                x1 = range(len(y1))
+
+                y2 = tuple(values[sensor] for values in average_calculated_dataset[move_type])[:5000]
+                x2 = range(len(y2))
+
+                y3 = tuple([values[sensor]] * MAX_READINGS_COUNT for values in max_calculated_dataset[move_type])
+                y3_ext = list(chain(*y3))[:5000]
+                x3 = range(len(y3_ext))
+
+                move_type_translit = MoveTypes.TRANSLATIONS[move_type]
+                plot_name = Path(
+                    f'{move_type}_normalized_{sensor + 1}_sensor'
+                )
+
+                chart_title = f'Исходные и нормализованные значения | {move_type_translit} | {sensor + 1} датчик'
+                label1 = 'Исходное значение'
+                label2 = 'Скользящее среднее'
+                label3 = 'Максимальное значение в окрестности'
+
+                draw_plot(
+                    x1=x1, y1=y1, label1=label1,
+                    x2=x2, y2=y2, label2=label2,
+                    x3=x3, y3=y3_ext, label3=label3,
+                    path_to_save=CHARTS_PATH / plot_name,
+                    chart_title=chart_title,
+                )
+
+    def save_charts_source_data(self, *, source_data):
+        for move_type, lines in source_data.items():
+            for sensor in range(self.sensors_count):
+                y = tuple(line[sensor] for line in lines)
+                x = range(len(y))
+
+                move_type_translit = MoveTypes.TRANSLATIONS[move_type]
+
+                path_to_save = CHARTS_PATH / Path('normalized_by_threshold')
+                path_to_save.mkdir(parents=True, exist_ok=True)
+                plot_name = Path(
+                    f'{move_type}_source_dataset_{sensor + 1}_sensor'
+                )
+
+                chart_title = f'Исходные активные значения | {move_type_translit} | {sensor + 1} датчик'
+                label = 'Исходное значение'
+
+                draw_plot(x1=x, y1=y, path_to_save=path_to_save / plot_name, chart_title=chart_title, label1=label)
 
 
 if __name__ == '__main__':
