@@ -24,7 +24,7 @@ class DataProcess:
 
     def __new__(cls, moves_chart: tuple[str], sensors_chart: tuple[int], segments_chart: tuple[list[str]]):
         if not hasattr(cls, 'instance'):
-            cls.__instance = super(DataProcess, cls).__new__(cls, moves_chart, sensors_chart, segments_chart)
+            cls.__instance = super(DataProcess, cls).__new__(cls)
         return cls.__instance
 
     def __init__(
