@@ -99,7 +99,7 @@ def draw_plot(
 
     axes.set_title(chart_title)
     axes.set_xlabel('Время, сек.')
-    axes.set_ylabel('Значение датчика')
+    axes.set_ylabel('Значение')
     axes.legend()
 
     if not os.path.exists(ACCURACY_CHARTS_DIR_NAME):

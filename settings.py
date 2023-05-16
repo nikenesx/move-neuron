@@ -17,7 +17,7 @@ TIME_PER_READING = 0.002
 # Директория с входными данными.
 DATASET_PATH: str = 'datasets/dataset3'
 
-DATASET_PATHS: list[str] = ['datasets/dataset3']  #, 'datasets/dataset2', 'datasets/dataset1']
+DATASET_PATHS: list[str] = ['datasets/dataset3', 'datasets/dataset2', 'datasets/dataset1']
 
 VALUES_THRESHOLDS = {
     'fist': {'sensor': 1, 'threshold': 120},

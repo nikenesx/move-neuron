@@ -1,4 +1,5 @@
 import copy
+import shutil
 import sys
 from collections import defaultdict
 from itertools import chain
@@ -9,6 +10,8 @@ from charts_utils import draw_plot
 from constants import MoveTypes
 from settings import DATASET_PATHS, SENSORS_COUNT, DATA_VECTORS_START_LINE, AVERAGE_READINGS_COUNT, MAX_READINGS_COUNT, \
     VALUES_THRESHOLDS, CHARTS_PATH, TIME_PER_READING
+
+PATH_UN = Path(CHARTS_PATH, 'uniq')
 
 
 class DataProcess:
@@ -184,16 +187,26 @@ class DataProcess:
         return calculated_dict, source_dataset_dict
 
     def save_charts_normalized_data(self, *, converted_dataset, average_calculated_dataset, max_calculated_dataset):
-        for move_type in max_calculated_dataset:
-            for sensor in range(self.sensors_count):
-                y1 = tuple(values[sensor] for values in converted_dataset[move_type])[:5000]
+        moves_list = self.moves_chart or max_calculated_dataset.keys()
+        sensors_list = self.sensors_chart or range(self.sensors_count)
+
+        if self.moves_chart or self.sensors_chart or self.segments_chart:
+            path_to_save = PATH_UN
+        else:
+            path_to_save = CHARTS_PATH
+
+        path_to_save.mkdir(exist_ok=True, parents=True)
+
+        for move_type in moves_list:
+            for sensor in sensors_list:
+                y1 = tuple(values[sensor] for values in converted_dataset[move_type])
                 x1 = range(len(y1))
 
-                y2 = tuple(values[sensor] for values in average_calculated_dataset[move_type])[:5000]
+                y2 = tuple(values[sensor] for values in average_calculated_dataset[move_type])
                 x2 = range(len(y2))
 
                 y3 = tuple([values[sensor]] * MAX_READINGS_COUNT for values in max_calculated_dataset[move_type])
-                y3_ext = list(chain(*y3))[:5000]
+                y3_ext = list(chain(*y3))
                 x3 = range(len(y3_ext))
 
                 move_type_translit = MoveTypes.TRANSLATIONS[move_type]
@@ -201,33 +214,78 @@ class DataProcess:
                     f'{move_type}_normalized_{sensor + 1}_sensor'
                 )
 
-                chart_title = f'Исходные и нормализованные значения | {move_type_translit} | {sensor + 1} датчик'
+                chart_title = f'Исходные и нормализованные значения | {move_type_translit} | {sensor + 1} канал'
                 label1 = 'Исходное значение'
                 label2 = 'Скользящее среднее'
                 label3 = 'Максимальное значение в окрестности'
 
-                x1 = list(map(lambda x: x * TIME_PER_READING, x1))
-                x2 = list(map(lambda x: x * TIME_PER_READING, x2))
-                x3 = list(map(lambda x: x * TIME_PER_READING, x3))
+                x1_t = list(map(lambda x: x * TIME_PER_READING, x1))
+                x2_t = list(map(lambda x: x * TIME_PER_READING, x2))
+                x3_t = list(map(lambda x: x * TIME_PER_READING, x3))
+                if not self.segments_chart:
+                    max_values = 5000
+                    draw_plot(
+                        x1=x1_t[:max_values], y1=y1[:max_values], label1=label1,
+                        x2=x2_t[:max_values], y2=y2[:max_values], label2=label2,
+                        # x3=x3_t[:max_values], y3=y3_ext[:max_values], label3=label3,
+                        path_to_save=path_to_save / plot_name,
+                        chart_title=chart_title,
+                    )
+                    continue
 
-                draw_plot(
-                    x1=x1, y1=y1, label1=label1,
-                    x2=x2, y2=y2, label2=label2,
-                    x3=x3, y3=y3_ext, label3=label3,
-                    path_to_save=CHARTS_PATH / plot_name,
-                    chart_title=chart_title,
-                )
+                x1_dict = {}
+                x2_dict = {}
+                x3_dict = {}
+
+                for i in x1:
+                    x1_dict[i * TIME_PER_READING] = y1[i]
+                for i in x2:
+                    x2_dict[i * TIME_PER_READING] = y2[i]
+                for i in x3:
+                    x3_dict[i * TIME_PER_READING] = y3_ext[i]
+
+                for segment in self.segments_chart:
+                    start = int(segment[0])
+                    end = int(segment[1])
+
+                    x1_times_list = list(filter(lambda x: start <= x <= end, x1_dict))
+                    x2_times_list = list(filter(lambda x: start <= x <= end, x2_dict))
+                    x3_times_list = list(filter(lambda x: start <= x <= end, x3_dict))
+
+                    y1_values = [x1_dict[value] for value in x1_times_list]
+                    y2_values = [x2_dict[value] for value in x2_times_list]
+                    y3_values = [x3_dict[value] for value in x3_times_list]
+
+                    chart_titles = f'{chart_title} | интервал {start}:{end}'
+                    plot_names = f'{str(plot_name)}_{start}_{end}'
+
+                    draw_plot(
+                        x1=x1_times_list, y1=y1_values, label1=label1,
+                        x2=x2_times_list, y2=y2_values, label2=label2,
+                        x3=x3_times_list, y3=y3_values, label3=label3,
+                        path_to_save=path_to_save / Path(plot_names),
+                        chart_title=chart_titles,
+                    )
 
     def save_charts_source_data(self, *, source_data):
-        for move_type, lines in source_data.items():
+        moves_list = self.moves_chart or source_data.keys()
+        sensors_list = self.sensors_chart or range(self.sensors_count)
+
+        if self.moves_chart or self.sensors_chart or self.segments_chart:
+            path_to_save = PATH_UN / Path('active_values')
+        else:
+            path_to_save = CHARTS_PATH / Path('normalized_by_threshold')
+
+        path_to_save.mkdir(exist_ok=True, parents=True)
+
+        for move_type in moves_list:
             for sensor in range(self.sensors_count):
+                lines = source_data[move_type]
                 y = tuple(line[sensor] for line in lines)
                 x = range(len(y))
 
                 move_type_translit = MoveTypes.TRANSLATIONS[move_type]
 
-                path_to_save = CHARTS_PATH / Path('normalized_by_threshold')
-                path_to_save.mkdir(parents=True, exist_ok=True)
                 plot_name = Path(
                     f'{move_type}_source_dataset_{sensor + 1}_sensor'
                 )
@@ -257,6 +315,13 @@ def parse_arguments(arguments_list: list[str]):
     if '--segments' in arguments_list:
         segments_str = arguments_list[arguments_list.index('--segments') + 1]
         segments = tuple(map(lambda el: el.strip().split(':'), segments_str.split(',')))
+
+    PATH_UN.mkdir(parents=True, exist_ok=True)
+
+    if moves or sensors or segments:
+        shutil.rmtree(PATH_UN)
+
+    PATH_UN.mkdir(parents=True, exist_ok=True)
 
     return moves, sensors, segments
 
