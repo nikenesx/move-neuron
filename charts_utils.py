@@ -98,7 +98,7 @@ def draw_plot(
         axes.plot(x3, y3, label=label3, color='#d6046a')
 
     axes.set_title(chart_title)
-    axes.set_xlabel('Номер отсчета')
+    axes.set_xlabel('Время, сек.')
     axes.set_ylabel('Значение датчика')
     axes.legend()
 

@@ -12,6 +12,7 @@ SENSORS_COUNT: int = 4
 AVERAGE_READINGS_COUNT: int = 15
 MAX_READINGS_COUNT: int = 50
 
+TIME_PER_READING = 0.002
 
 # Директория с входными данными.
 DATASET_PATH: str = 'datasets/dataset3'

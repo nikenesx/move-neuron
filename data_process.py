@@ -1,4 +1,5 @@
 import copy
+import sys
 from collections import defaultdict
 from itertools import chain
 from pathlib import Path
@@ -6,7 +7,7 @@ from pathlib import Path
 from charts_utils import draw_plot
 from constants import MoveTypes
 from settings import DATASET_PATHS, SENSORS_COUNT, DATA_VECTORS_START_LINE, AVERAGE_READINGS_COUNT, MAX_READINGS_COUNT, \
-    VALUES_THRESHOLDS, CHARTS_PATH
+    VALUES_THRESHOLDS, CHARTS_PATH, TIME_PER_READING
 
 
 class DataProcess:
@@ -194,6 +195,10 @@ class DataProcess:
                 label2 = 'Скользящее среднее'
                 label3 = 'Максимальное значение в окрестности'
 
+                x1 = list(map(lambda x: x * TIME_PER_READING, x1))
+                x2 = list(map(lambda x: x * TIME_PER_READING, x2))
+                x3 = list(map(lambda x: x * TIME_PER_READING, x3))
+
                 draw_plot(
                     x1=x1, y1=y1, label1=label1,
                     x2=x2, y2=y2, label2=label2,
@@ -218,10 +223,13 @@ class DataProcess:
 
                 chart_title = f'Исходные активные значения | {move_type_translit} | {sensor + 1} датчик'
                 label = 'Исходное значение'
+                x = list(map(lambda el: el * TIME_PER_READING, x))
 
                 draw_plot(x1=x, y1=y, path_to_save=path_to_save / plot_name, chart_title=chart_title, label1=label)
 
 
 if __name__ == '__main__':
+    print(sys.argv)
     data_process = DataProcess()
     data_process.get_normalized_dataset()
+    print(sys.ar)
