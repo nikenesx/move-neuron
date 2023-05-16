@@ -229,7 +229,5 @@ class DataProcess:
 
 
 if __name__ == '__main__':
-    print(sys.argv)
     data_process = DataProcess()
     data_process.get_normalized_dataset()
-    print(sys.ar)
