@@ -25,3 +25,5 @@ class MoveTypes:
         EXTENSION: 4,
         BENDING: 5,
     }
+
+    ALL_TYPES = (FIST, LEAD, REST, CAST, EXTENSION, BENDING)

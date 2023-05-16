@@ -3,6 +3,7 @@ import sys
 from collections import defaultdict
 from itertools import chain
 from pathlib import Path
+from typing import Optional
 
 from charts_utils import draw_plot
 from constants import MoveTypes
@@ -21,10 +22,20 @@ class DataProcess:
     dataset_paths = DATASET_PATHS
     sensors_count = SENSORS_COUNT
 
-    def __new__(cls):
+    def __new__(cls, moves_chart: tuple[str], sensors_chart: tuple[int], segments_chart: tuple[list[str]]):
         if not hasattr(cls, 'instance'):
-            cls.__instance = super(DataProcess, cls).__new__(cls)
+            cls.__instance = super(DataProcess, cls).__new__(cls, moves_chart, sensors_chart, segments_chart)
         return cls.__instance
+
+    def __init__(
+        self,
+        moves_chart: Optional[tuple[str]] = None,
+        sensors_chart: Optional[tuple[int]] = None,
+        segments_chart: Optional[tuple[list[str]]] = None,
+    ):
+        self.moves_chart = moves_chart
+        self.sensors_chart = sensors_chart
+        self.segments_chart = segments_chart
 
     def _read_data_by_move_types(self) -> dict[str, list[str]]:
         """
@@ -228,6 +239,29 @@ class DataProcess:
                 draw_plot(x1=x, y1=y, path_to_save=path_to_save / plot_name, chart_title=chart_title, label1=label)
 
 
+def parse_arguments(arguments_list: list[str]):
+    moves = None
+    sensors = None
+    segments = None
+
+    if '--moves' in arguments_list:
+        moves_str = arguments_list[arguments_list.index('--moves') + 1]
+        moves_split = map(lambda el: el.strip(), moves_str.split(','))
+        moves = tuple(filter(lambda el: el in MoveTypes.ALL_TYPES, moves_split))
+
+    if '--sensors' in arguments_list:
+        sensors_str = arguments_list[arguments_list.index('--sensors') + 1]
+        sensors_split = map(lambda el: int(el.strip()) - 1, sensors_str.split(','))
+        sensors = tuple(filter(lambda el: el in range(SENSORS_COUNT), sensors_split))
+
+    if '--segments' in arguments_list:
+        segments_str = arguments_list[arguments_list.index('--segments') + 1]
+        segments = tuple(map(lambda el: el.strip().split(':'), segments_str.split(',')))
+
+    return moves, sensors, segments
+
+
 if __name__ == '__main__':
-    data_process = DataProcess()
+    moves, sensors, segments = parse_arguments(sys.argv)
+    data_process = DataProcess(moves_chart=moves, sensors_chart=sensors, segments_chart=segments)
     data_process.get_normalized_dataset()
