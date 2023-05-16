@@ -205,9 +205,9 @@ class DataProcess:
                 y2 = tuple(values[sensor] for values in average_calculated_dataset[move_type])
                 x2 = range(len(y2))
 
-                y3 = tuple([values[sensor]] * MAX_READINGS_COUNT for values in max_calculated_dataset[move_type])
-                y3_ext = list(chain(*y3))
-                x3 = range(len(y3_ext))
+                # y3 = tuple([values[sensor]] * MAX_READINGS_COUNT for values in max_calculated_dataset[move_type])
+                # y3_ext = list(chain(*y3))
+                # x3 = range(len(y3_ext))
 
                 move_type_translit = MoveTypes.TRANSLATIONS[move_type]
                 plot_name = Path(
@@ -221,7 +221,7 @@ class DataProcess:
 
                 x1_t = list(map(lambda x: x * TIME_PER_READING, x1))
                 x2_t = list(map(lambda x: x * TIME_PER_READING, x2))
-                x3_t = list(map(lambda x: x * TIME_PER_READING, x3))
+                # x3_t = list(map(lambda x: x * TIME_PER_READING, x3))
                 if not self.segments_chart:
                     max_values = 5000
                     draw_plot(
@@ -241,8 +241,8 @@ class DataProcess:
                     x1_dict[i * TIME_PER_READING] = y1[i]
                 for i in x2:
                     x2_dict[i * TIME_PER_READING] = y2[i]
-                for i in x3:
-                    x3_dict[i * TIME_PER_READING] = y3_ext[i]
+                # for i in x3:
+                #     x3_dict[i * TIME_PER_READING] = y3_ext[i]
 
                 for segment in self.segments_chart:
                     start = int(segment[0])
@@ -250,11 +250,11 @@ class DataProcess:
 
                     x1_times_list = list(filter(lambda x: start <= x <= end, x1_dict))
                     x2_times_list = list(filter(lambda x: start <= x <= end, x2_dict))
-                    x3_times_list = list(filter(lambda x: start <= x <= end, x3_dict))
+                    # x3_times_list = list(filter(lambda x: start <= x <= end, x3_dict))
 
                     y1_values = [x1_dict[value] for value in x1_times_list]
                     y2_values = [x2_dict[value] for value in x2_times_list]
-                    y3_values = [x3_dict[value] for value in x3_times_list]
+                    # y3_values = [x3_dict[value] for value in x3_times_list]
 
                     chart_titles = f'{chart_title} | интервал {start}:{end}'
                     plot_names = f'{str(plot_name)}_{start}_{end}'
@@ -262,7 +262,7 @@ class DataProcess:
                     draw_plot(
                         x1=x1_times_list, y1=y1_values, label1=label1,
                         x2=x2_times_list, y2=y2_values, label2=label2,
-                        x3=x3_times_list, y3=y3_values, label3=label3,
+                        # x3=x3_times_list, y3=y3_values, label3=label3,
                         path_to_save=path_to_save / Path(plot_names),
                         chart_title=chart_titles,
                     )
