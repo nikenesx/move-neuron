@@ -166,7 +166,6 @@ class DataProcess:
             average_calculated_dataset=average_calculated_dataset,
             max_calculated_dataset=max_calculated_dataset,
         )
-        self.save_charts_source_data(source_data=source_data)
 
         return normalized_by_threshold
 
@@ -266,35 +265,6 @@ class DataProcess:
                         path_to_save=path_to_save / Path(plot_names),
                         chart_title=chart_titles,
                     )
-
-    def save_charts_source_data(self, *, source_data):
-        moves_list = self.moves_chart or source_data.keys()
-        sensors_list = self.sensors_chart or range(self.sensors_count)
-
-        if self.moves_chart or self.sensors_chart or self.segments_chart:
-            path_to_save = PATH_UN / Path('active_values')
-        else:
-            path_to_save = CHARTS_PATH / Path('normalized_by_threshold')
-
-        path_to_save.mkdir(exist_ok=True, parents=True)
-
-        for move_type in moves_list:
-            for sensor in range(self.sensors_count):
-                lines = source_data[move_type]
-                y = tuple(line[sensor] for line in lines)
-                x = range(len(y))
-
-                move_type_translit = MoveTypes.TRANSLATIONS[move_type]
-
-                plot_name = Path(
-                    f'{move_type}_source_dataset_{sensor + 1}_sensor'
-                )
-
-                chart_title = f'Исходные активные значения | {move_type_translit} | {sensor + 1} датчик'
-                label = 'Исходное значение'
-                x = list(map(lambda el: el * TIME_PER_READING, x))
-
-                draw_plot(x1=x, y1=y, path_to_save=path_to_save / plot_name, chart_title=chart_title, label1=label)
 
 
 def parse_arguments(arguments_list: list[str]):
