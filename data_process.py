@@ -151,7 +151,7 @@ class DataProcess:
 
         return calculated_dict
 
-    def get_normalized_dataset(self) -> dict[str, list[list[float]]]:
+    def get_normalized_dataset_to_fit_model(self) -> dict[str, list[list[float]]]:
         """Считывает набор данных из файлов, нормализует и возвращает его"""
         converted_dataset = self._convert_data_dict_values_to_lists()
         average_calculated_dataset = self._calculate_average_window(dataset_dict=converted_dataset)
@@ -299,4 +299,4 @@ def parse_arguments(arguments_list: list[str]):
 if __name__ == '__main__':
     moves, sensors, segments = parse_arguments(sys.argv)
     data_process = DataProcess(moves_chart=moves, sensors_chart=sensors, segments_chart=segments)
-    data_process.get_normalized_dataset()
+    data_process.get_normalized_dataset_to_fit_model()

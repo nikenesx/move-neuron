@@ -49,7 +49,10 @@ class TrainModelOptions:
     # (необходимо для предотвращения переобучения модели).
     # Возможные значения: от 0.0 до 1.0
     # Рекомендованные значения: от 0.1 до 0.3
-    VALIDATION_SPLIT: float = 0.10
+    VALIDATION_SPLIT: float = 0.1
+
+    # Размер тестовой выборки
+    TESTING_SPLIT: float = 0.1
 
     # Название обученной нейронной сети (расширение .h5 обязательно)
     MODEL_NAME: str = 'move_types_model.h5'
