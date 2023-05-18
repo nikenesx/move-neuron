@@ -18,12 +18,12 @@ class MoveTypes:
     }
 
     NUMS = {
-        FIST: 0,
-        LEAD: 1,
-        REST: 2,
-        CAST: 3,
-        EXTENSION: 4,
-        BENDING: 5,
+        REST: 0,
+        FIST: 1,
+        BENDING: 2,
+        EXTENSION: 3,
+        CAST: 4,
+        LEAD: 5,
     }
 
     ALL_TYPES = (FIST, LEAD, REST, CAST, EXTENSION, BENDING)
