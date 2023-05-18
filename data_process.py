@@ -25,7 +25,12 @@ class DataProcess:
     dataset_paths = DATASET_PATHS
     sensors_count = SENSORS_COUNT
 
-    def __new__(cls, moves_chart: tuple[str], sensors_chart: tuple[int], segments_chart: tuple[list[str]]):
+    def __new__(
+        cls,
+        moves_chart: Optional[tuple[str]] = None,
+        sensors_chart: Optional[tuple[int]] = None,
+        segments_chart: Optional[tuple[list[str]]] = None,
+    ):
         if not hasattr(cls, 'instance'):
             cls.__instance = super(DataProcess, cls).__new__(cls)
         return cls.__instance

@@ -23,7 +23,13 @@ class Network:
         if Path(self.MODEL_NAME).exists():
             self.TRAINED_MODEL = load_model(self.MODEL_NAME)
 
-    def train_model(self):
+    def train_model(self) -> None:
+        if self.TRAINED_MODEL:
+            print(f'Найдена обученная модель {self.MODEL_NAME}. Обучить новую?')
+            answer = input('Да/нет? : ')
+            if answer.strip().lower() != 'да':
+                return
+
         data_process = DataProcess()
         sensor_data_vectors = data_process.get_normalized_dataset_to_fit_model()
 
@@ -101,3 +107,8 @@ class Network:
                 max_value = lst_max
 
         return max_value
+
+
+if __name__ == '__main__':
+    network = Network()
+    network.train_model()
