@@ -9,7 +9,7 @@ from typing import Optional
 from charts_utils import draw_plot
 from constants import MoveTypes
 from settings import DATASET_PATHS, SENSORS_COUNT, DATA_VECTORS_START_LINE, AVERAGE_READINGS_COUNT, MAX_READINGS_COUNT, \
-    VALUES_THRESHOLDS, CHARTS_PATH, TIME_PER_READING
+    VALUES_THRESHOLDS, CHARTS_PATH, TIME_PER_READING, DIFFERENT_MOVES_PATH
 
 PATH_UN = Path(CHARTS_PATH, 'uniq')
 
@@ -87,6 +87,51 @@ class DataProcess:
             self.dataset_by_move_types[move_type].extend(list(lines_float_values))
 
         return self.dataset_by_move_types
+
+    def calculate_average_window_lists(self, *, dataset_lists: list[list]):
+        calculated_dict = copy.deepcopy(dataset_lists)
+
+        start_reading = 0
+        sum_values = 0
+
+        for sensor_number in range(self.sensors_count):
+            while True:
+                try:
+                    for line_number in range(start_reading, start_reading + AVERAGE_READINGS_COUNT):
+                        sum_values += calculated_dict[line_number][sensor_number]
+                except IndexError:
+                    for i in range(start_reading, line_number):
+                        index = abs(line_number - start_reading)
+                        calculated_dict[i][sensor_number] = abs(calculated_dict[i][sensor_number] - sum_values / index)
+                    break
+
+                readings_average_value = sum_values / AVERAGE_READINGS_COUNT
+
+                for line_number in range(start_reading, start_reading + AVERAGE_READINGS_COUNT):
+                    calculated_dict[line_number][sensor_number] = abs(
+                        calculated_dict[line_number][sensor_number] - readings_average_value
+                    )
+                sum_values = 0
+                start_reading += AVERAGE_READINGS_COUNT
+
+            start_reading = 0
+            sum_values = 0
+
+        return calculated_dict
+
+    def _get_dataset_different_moves(self):
+        with open(DIFFERENT_MOVES_PATH) as file:
+            lines = file.readlines()
+
+        striped_lines = map(lambda line: line.strip(), lines)
+        not_empty_lines = filter(lambda line: line, striped_lines)
+        splited_lines = list(map(lambda line: line.split(' ')[1:self.sensors_count + 1], not_empty_lines))
+
+        return list(map(lambda line: list(map(lambda value: float(value), line)), splited_lines))
+
+    def get_normalized_different_moves_dataset(self):
+        dataset = self._get_dataset_different_moves()
+        return self.calculate_average_window_lists(dataset_lists=dataset)
 
     def _calculate_average_window(self, *, dataset_dict: dict[str, list[list[float]]]) -> dict[str, list[list[float]]]:
         """
@@ -166,11 +211,11 @@ class DataProcess:
             source_dataset=converted_dataset,
         )
 
-        self.save_charts_normalized_data(
-            converted_dataset=converted_dataset,
-            average_calculated_dataset=average_calculated_dataset,
-            max_calculated_dataset=max_calculated_dataset,
-        )
+        # self.save_charts_normalized_data(
+        #     converted_dataset=converted_dataset,
+        #     average_calculated_dataset=average_calculated_dataset,
+        #     max_calculated_dataset=max_calculated_dataset,
+        # )
 
         return normalized_by_threshold
 
