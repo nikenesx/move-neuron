@@ -9,7 +9,7 @@ DATA_VECTORS_START_LINE: int = 7
 SENSORS_COUNT: int = 4
 
 
-AVERAGE_READINGS_COUNT: int = 15
+AVERAGE_READINGS_COUNT: int = 10
 MAX_READINGS_COUNT: int = 50
 
 TIME_PER_READING = 0.002
@@ -17,7 +17,8 @@ TIME_PER_READING = 0.002
 # Директория с входными данными.
 DATASET_PATH: str = 'datasets/dataset3'
 
-DATASET_PATHS: list[str] = ['datasets/dataset3', 'datasets/dataset2', 'datasets/dataset1']
+DATASET_PATHS: list[str] = ['datasets/dataset4']
+DIFFERENT_MOVES_PATH: str = 'datasets/different_moves3.txt'
 
 VALUES_THRESHOLDS = {
     'fist': {'sensor': 1, 'threshold': 120},
@@ -38,21 +39,21 @@ class TrainModelOptions:
     # Позволяет быстрее обучаться сети.
     # Возможные значения: от 0 до 10.000
     # Рекомендованные значения: от 10 до 1.000
-    BATCH_SIZE: int = 32
+    BATCH_SIZE: int = 100
 
     # Количество эпох обучения. Определяет, сколько раз будут прогоняться входные данные. Подача всех векторов на вход
     # для обучения один раз = 1 эпоха.
     # Возможные значения: от 1 до ∞
-    EPOCHS_COUNT: int = 10
+    EPOCHS_COUNT: int = 30
 
     # Размер выборки валидации. Определяет, какой процент от входных данных будет использоваться для выборки валидации
     # (необходимо для предотвращения переобучения модели).
     # Возможные значения: от 0.0 до 1.0
     # Рекомендованные значения: от 0.1 до 0.3
-    VALIDATION_SPLIT: float = 0.1
+    VALIDATION_SPLIT: float = 0.15
 
     # Размер тестовой выборки
-    TESTING_SPLIT: float = 0.1
+    TESTING_SPLIT: float = 0.05
 
     # Название обученной нейронной сети (расширение .h5 обязательно)
     MODEL_NAME: str = 'move_types_model.h5'

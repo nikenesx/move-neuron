@@ -34,22 +34,16 @@ class Network:
         sensor_data_vectors = data_process.get_normalized_dataset_to_fit_model()
 
         input_vectors, result_values = self.get_input_and_expected_vectors(input_data=sensor_data_vectors)
-        max_value = self.get_max_sensor_value(data=input_vectors)
 
-        with open(f'max_value.txt', 'w') as file:
-            file.write(str(max_value))
-
-        input_vectors = np.array(input_vectors) / max_value
+        input_vectors = np.array(input_vectors)
         result_values_cat = to_categorical(np.array(result_values), len(MoveTypes.NUMS))
 
         input_vectors, result_values_cat = self.unison_shuffled_copies(input_vectors, result_values_cat)
 
         test_len = int(len(input_vectors) * TrainModelOptions.TESTING_SPLIT)
-        input_vectors_test = input_vectors[:test_len]
-        result_values_cat_test = result_values_cat[:test_len]
 
-        input_vectors = input_vectors[test_len:]
-        result_values_cat = result_values_cat[test_len:]
+        input_vectors_test, result_values_cat_test = input_vectors[:test_len], result_values_cat[:test_len]
+        input_vectors, result_values_cat = input_vectors[test_len:], result_values_cat[test_len:]
 
         model = Sequential([
             Dense(128, activation='relu'),
