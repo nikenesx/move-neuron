@@ -15,9 +15,15 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 class Network:
+    __instance = None
 
     MODEL_NAME = TrainModelOptions.MODEL_NAME
     TRAINED_MODEL = None
+
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.__instance = super(Network, cls).__new__(cls)
+        return cls.__instance
 
     def __init__(self):
         if Path(self.MODEL_NAME).exists():

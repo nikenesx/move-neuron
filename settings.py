@@ -18,16 +18,26 @@ TIME_PER_READING = 0.002
 DATASET_PATH: str = 'datasets/dataset3'
 
 DATASET_PATHS: list[str] = ['datasets/dataset4']
-DIFFERENT_MOVES_PATH: str = 'datasets/different_moves3.txt'
+DIFFERENT_MOVES_PATH: str = 'datasets/different_moves4.txt'
 
 VALUES_THRESHOLDS = {
-    'fist': {'sensor': 1, 'threshold': 120},
-    'lead': {'sensor': 0, 'threshold': 65},
+    'fist': {'sensor': 1, 'threshold': 130},
+    'lead': {'sensor': 0, 'threshold': 75},
     'rest': {'sensor': 0, 'threshold': 0},
-    'cast': {'sensor': 3, 'threshold': 110},
-    'extension': {'sensor': 3, 'threshold': 120},
-    'bending': {'sensor': 1, 'threshold': 250},
+    'cast': {'sensor': 3, 'threshold': 120},
+    'extension': {'sensor': 3, 'threshold': 130},
+    'bending': {'sensor': 1, 'threshold': 260},
 }
+
+
+THRESHOLD_FUNCTION_VALUES = {
+    'fist': {0: 100, 1: 200, 2: 125, 3: 75},
+    'lead': {0: 150, 1: 0, 2: 0, 3: 75},
+    'cast': {0: 0, 1: 10, 2: 75, 3: 150},
+    'extension': {0: 50, 1: 0, 2: 10, 3: 175},
+    'bending': {0: 0, 1: 200, 2: 200, 3: 0},
+}
+
 
 CHARTS_PATH = Path('charts')
 
