@@ -1,3 +1,4 @@
+from itertools import chain
 from pathlib import Path
 from typing import Optional
 
@@ -7,7 +8,7 @@ from charts_utils import draw_plot
 from constants import MoveTypes
 from data_process import DataProcess
 from neural_network import Network
-from settings import THRESHOLD_FUNCTION_VALUES, ProcessingType, TIME_PER_READING, CHARTS_PATH
+from settings import THRESHOLD_FUNCTION_VALUES, ProcessingType, TIME_PER_READING, CHARTS_PATH, MAX_READINGS_COUNT
 
 
 class PredictMove:
@@ -62,8 +63,9 @@ class PredictMove:
         else:
             raise ValueError(f'Unknown processing method. Use {ProcessingType.METHODS}')
 
-        results = np.array([])
-        [np.append(results, process_function(vector=vector)) for vector in dataset]
+        results = []
+        for vector in dataset:
+            results.append(process_function(vector=vector))
 
         if is_draw_plot:
             self.draw_different_moves_chart(results=results, processing=processing)
@@ -73,19 +75,21 @@ class PredictMove:
         """
         Сохранить график с результатами
         """
-        x = list(map(lambda val: val * TIME_PER_READING, results))
+        results = [[res] * MAX_READINGS_COUNT for res in results]
+        results_t = []
+        for lst in results:
+            results_t = list(chain(results_t, lst))
+        results = results_t
+
+        x = list(map(lambda val: val * TIME_PER_READING, range(len(results))))
         chart_name = f'results_{processing}'
 
-        path_to_save = CHARTS_PATH / Path(f'results/{chart_name}')
+        path_to_save = CHARTS_PATH / Path(f'results')
         path_to_save.mkdir(parents=True, exist_ok=True)
 
-        draw_plot(
-            x1=x, y1=results, label1='Результат',
-            path_to_save=CHARTS_PATH,
-            chart_title='Результаты',
-        )
+        draw_plot(x1=x, y1=results, label1='Результат', chart_title='Результаты')
 
 
 if __name__ == '__main__':
     pr = PredictMove()
-    pr.process_different_moves_file(processing=ProcessingType.FUNCTION, values_count=5000)
+    pr.process_different_moves_file(processing=ProcessingType.FUNCTION, values_count=250)

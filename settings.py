@@ -10,7 +10,7 @@ SENSORS_COUNT: int = 4
 
 
 AVERAGE_READINGS_COUNT: int = 10
-MAX_READINGS_COUNT: int = 50
+MAX_READINGS_COUNT: int = 20
 
 TIME_PER_READING = 0.002
 
@@ -18,7 +18,7 @@ TIME_PER_READING = 0.002
 DATASET_PATH: str = 'datasets/dataset3'
 
 DATASET_PATHS: list[str] = ['datasets/dataset4']
-DIFFERENT_MOVES_PATH: str = 'datasets/different_moves4.txt'
+DIFFERENT_MOVES_PATH: str = 'datasets/different_moves5.txt'
 
 VALUES_THRESHOLDS = {
     'fist': {'sensor': 1, 'threshold': 130},

@@ -89,7 +89,7 @@ def draw_plot(
     figure, axes = plt.subplots(1, 1, figsize=(16, 10))
     axes.grid(color='lightgray', which='both', zorder=0)
 
-    axes.plot(x1, y1, label=label1, color='#03bcff')
+    axes.step(x1, y1, label=label1, color='#03bcff')
 
     if x2 and y2:
         axes.plot(x2, y2, label=label2, color='#07b836')

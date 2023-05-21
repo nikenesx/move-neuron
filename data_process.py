@@ -102,7 +102,8 @@ class DataProcess:
         Возвращает нормализованный датасет с разными типами движений
         """
         dataset_from_files = self._get_dataset_different_moves()
-        return self._average_window_lists(dataset_lists=dataset_from_files)
+        average_data = self._average_window_lists(dataset_lists=dataset_from_files)
+        return self._max_window_lists(dataset_lists=average_data)
 
     def _calculate_average(self, *, lines: list[list[float]]) -> list[list[float]]:
         start_reading = 0
@@ -148,9 +149,36 @@ class DataProcess:
         Нормализует входной датасет из разных движений, вычисляя среднее-скользящее каждого элемента
         """
         calculated_lines = copy.deepcopy(dataset_lists)
-        self._calculate_average(lines=calculated_lines)
+        return self._calculate_average(lines=calculated_lines)
 
-        return calculated_lines
+    def _max_window_lists(self, *, dataset_lists: list[list]) -> list[list[float]]:
+        calculated_dict = []
+        start_reading = 0
+
+        for sensor_number in range(self.sensors_count):
+            current_index = 0
+            while True:
+                try:
+                    list_to_get_max = [
+                        dataset_lists[line_number][sensor_number]
+                        for line_number in range(start_reading, start_reading + MAX_READINGS_COUNT)
+                    ]
+                    max_window_value = max(list_to_get_max)
+                except IndexError:
+                    break
+
+                try:
+                    calculated_dict[current_index].append(max_window_value)
+                except IndexError:
+                    calculated_dict.append([])
+                    calculated_dict[current_index].append(max_window_value)
+
+                current_index += 1
+                start_reading += MAX_READINGS_COUNT
+
+            start_reading = 0
+
+        return calculated_dict
 
     def _max_window(self, *, dataset_dict: dict[str, list[list[float]]]) -> dict[str, list[list[float]]]:
         """
