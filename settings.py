@@ -67,3 +67,10 @@ class TrainModelOptions:
 
     # Название обученной нейронной сети (расширение .h5 обязательно)
     MODEL_NAME: str = 'move_types_model.h5'
+
+
+class ProcessingType:
+    NETWORK = 'network'
+    FUNCTION = 'function'
+
+    METHODS = (NETWORK, FUNCTION)
