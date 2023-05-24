@@ -2,13 +2,23 @@ import copy
 import shutil
 import sys
 from collections import defaultdict
+from itertools import chain
 from pathlib import Path
 from typing import Optional
 
 from charts_utils import draw_plot
 from constants import MoveTypes
-from settings import DATASET_PATHS, SENSORS_COUNT, DATA_VECTORS_START_LINE, AVERAGE_READINGS_COUNT, MAX_READINGS_COUNT, \
-    VALUES_THRESHOLDS, CHARTS_PATH, TIME_PER_READING, DIFFERENT_MOVES_PATH
+from settings import (
+    DATASET_PATHS,
+    SENSORS_COUNT,
+    DATA_VECTORS_START_LINE,
+    AVERAGE_READINGS_COUNT,
+    MAX_READINGS_COUNT,
+    VALUES_THRESHOLDS,
+    CHARTS_PATH,
+    TIME_PER_READING,
+    DIFFERENT_MOVES_PATH, THRESHOLD_FUNCTION_VALUES, MAX_READINGS_COUNT_MEDIAN,
+)
 
 PATH_UN = Path(CHARTS_PATH, 'uniq')
 
@@ -102,14 +112,65 @@ class DataProcess:
         Возвращает нормализованный датасет с разными типами движений
         """
         dataset_from_files = self._get_dataset_different_moves()
-        average_data = self._average_window_lists(dataset_lists=dataset_from_files)
-        return self._max_window_lists(dataset_lists=average_data)
+        avg = self._average_window_lists(dataset_lists=dataset_from_files)
+        media = self._average_median_lists(dataset_lists=avg)
+
+        max = self._max_window_lists(dataset_lists=avg)
+
+        for sensor in range(SENSORS_COUNT):
+            value_line1 = THRESHOLD_FUNCTION_VALUES['fist'][sensor]
+            value_line2 = THRESHOLD_FUNCTION_VALUES['lead'][sensor]
+            value_line3 = THRESHOLD_FUNCTION_VALUES['cast'][sensor]
+            value_line4 = THRESHOLD_FUNCTION_VALUES['extension'][sensor]
+            value_line5 = THRESHOLD_FUNCTION_VALUES['bending'][sensor]
+
+
+            # y1 = tuple(values[sensor] for values in dataset_from_files)
+            # x1 = range(len(y1))
+
+            y2 = tuple(values[sensor] for values in avg)
+            x2 = range(len(y2))
+
+            y3 = tuple([values[sensor]] * MAX_READINGS_COUNT for values in max)
+            y3_ext = list(chain(*y3))
+            x3 = range(len(y3_ext))
+
+            plot_name = Path(
+                f'exp_normalized_{sensor + 1}_sensor'
+            )
+
+            chart_title = f'Исходные и нормализованные значения | {sensor + 1} канал'
+            label1 = 'Исходное значение'
+            label2 = 'Скользящее среднее'
+            label3 = 'Максимальное значение в окрестности'
+
+            # x1_t = list(map(lambda x: x * TIME_PER_READING, x1))
+            x2_t = list(map(lambda x: x * TIME_PER_READING, x2))
+            x3_t = list(map(lambda x: x * TIME_PER_READING, x3))
+
+            max_values = 8500
+            draw_plot(
+                # x1=x1_t[:max_values], y1=y1[:max_values], label1=label1,
+                x2=x2_t[:max_values], y2=y2[:max_values], label2=label2,
+                x3=x3_t[:max_values], y3=y3_ext[:max_values], label3=label3,
+                path_to_save=CHARTS_PATH / plot_name,
+                # chart_title=chart_title,
+                # value_line1=value_line1,
+                # value_line2=value_line2,
+                # value_line3=value_line3,
+                # value_line4=value_line4,
+                # value_line5=value_line5,
+            )
+
+        return media
 
     def _calculate_average(self, *, lines: list[list[float]]) -> list[list[float]]:
         start_reading = 0
         sum_values = 0
 
         for sensor_number in range(self.sensors_count):
+            if sensor_number == 1:
+                print(1)
             while True:
                 try:
                     for line_number in range(start_reading, start_reading + AVERAGE_READINGS_COUNT):
@@ -134,6 +195,47 @@ class DataProcess:
 
         return lines
 
+    def _calculate_median(self, *, lines: list[list[float]]) -> list[list[float]]:
+        current_index = 0
+        lns = len(lines)
+        median = MAX_READINGS_COUNT_MEDIAN // 2
+        lines2 = copy.deepcopy(lines)
+        for sensor_number in range(self.sensors_count):
+            while current_index < lns:
+                median_list = []
+
+                start_median_index = current_index - median
+                end_median_index = current_index + median
+
+                if start_median_index < 0:
+                    median_list.extend([0] * abs(start_median_index))
+                    start_median_index = 0
+
+                if end_median_index > lns:
+                    end_median_index = lns
+                    median_list.extend([line[sensor_number] for line in lines[start_median_index:end_median_index]])
+
+                else:
+                    # for line in lines[start_median_index:end_median_index]:
+                    #     median_list.append(line[sensor_number])
+                    median_list.extend([line[sensor_number] for line in lines[start_median_index:end_median_index]])
+
+                median_list.extend([lines[current_index][sensor_number]])
+
+                median_list.sort()
+                lines2[current_index][sensor_number] = median_list[MAX_READINGS_COUNT_MEDIAN // 2]
+                current_index += 1
+
+            current_index = 0
+        for i, j in zip(lines, lines2):
+            try:
+                assert i != j
+            except:
+                print(i)
+                print(j)
+                print('--------------------------')
+        return lines2
+
     def _average_window(self, *, dataset_dict: dict[str, list[list[float]]]) -> dict[str, list[list[float]]]:
         """
         Нормализует входной датасет, вычисляя среднее-скользящее каждого элемента
@@ -144,12 +246,29 @@ class DataProcess:
 
         return calculated_dict
 
+    def _average_median(self, *, dataset_dict: dict[str, list[list[float]]]) -> dict[str, list[list[float]]]:
+        """
+        Нормализует входной датасет, вычисляя среднее-скользящее каждого элемента
+        """
+        calculated_dict = copy.deepcopy(dataset_dict)
+        for lines_lists in calculated_dict.values():
+            self._calculate_median(lines=lines_lists)
+
+        return calculated_dict
+
     def _average_window_lists(self, *, dataset_lists: list[list]) -> list[list[float]]:
         """
         Нормализует входной датасет из разных движений, вычисляя среднее-скользящее каждого элемента
         """
         calculated_lines = copy.deepcopy(dataset_lists)
         return self._calculate_average(lines=calculated_lines)
+
+    def _average_median_lists(self, *, dataset_lists: list[list]) -> list[list[float]]:
+        """
+        Нормализует входной датасет, вычисляя среднее-скользящее каждого элемента
+        """
+        calculated_lines = copy.deepcopy(dataset_lists)
+        return self._calculate_median(lines=calculated_lines)
 
     def _max_window_lists(self, *, dataset_lists: list[list]) -> list[list[float]]:
         calculated_dict = []
@@ -219,17 +338,18 @@ class DataProcess:
         average_calculated_dataset = self._average_window(dataset_dict=converted_dataset)
         max_calculated_dataset = self._max_window(dataset_dict=average_calculated_dataset)
 
-        normalized_by_threshold, source_data = self.normalize_dataset_by_threshold(
-            dataset=average_calculated_dataset,
-            source_dataset=converted_dataset,
-        )
+        # normalized_by_threshold, source_data = self.normalize_dataset_by_threshold(
+        #     dataset=average_calculated_dataset,
+        #     source_dataset=converted_dataset,
+        # )
+        medianed = self._average_median(dataset_dict=average_calculated_dataset)
         self.save_charts_normalized_data(
             converted_dataset=converted_dataset,
             average_calculated_dataset=average_calculated_dataset,
-            max_calculated_dataset=max_calculated_dataset,
+            max_calculated_dataset=medianed,
         )
 
-        return normalized_by_threshold
+        return medianed
 
     @staticmethod
     def normalize_dataset_by_threshold(*, dataset: dict, source_dataset: dict):
@@ -266,9 +386,9 @@ class DataProcess:
                 y2 = tuple(values[sensor] for values in average_calculated_dataset[move_type])
                 x2 = range(len(y2))
 
-                # y3 = tuple([values[sensor]] * MAX_READINGS_COUNT for values in max_calculated_dataset[move_type])
-                # y3_ext = list(chain(*y3))
-                # x3 = range(len(y3_ext))
+                y3 = tuple([values[sensor]] * MAX_READINGS_COUNT for values in max_calculated_dataset[move_type])
+                y3_ext = list(chain(*y3))
+                x3 = range(len(y3_ext))
 
                 move_type_translit = MoveTypes.TRANSLATIONS[move_type]
                 plot_name = Path(
@@ -282,13 +402,13 @@ class DataProcess:
 
                 x1_t = list(map(lambda x: x * TIME_PER_READING, x1))
                 x2_t = list(map(lambda x: x * TIME_PER_READING, x2))
-                # x3_t = list(map(lambda x: x * TIME_PER_READING, x3))
+                x3_t = list(map(lambda x: x * TIME_PER_READING, x3))
                 if not self.segments_chart:
                     max_values = 5000
                     draw_plot(
                         x1=x1_t[:max_values], y1=y1[:max_values], label1=label1,
                         x2=x2_t[:max_values], y2=y2[:max_values], label2=label2,
-                        # x3=x3_t[:max_values], y3=y3_ext[:max_values], label3=label3,
+                        x3=x3_t[:max_values], y3=y3_ext[:max_values], label3=label3,
                         path_to_save=path_to_save / plot_name,
                         chart_title=chart_title,
                     )
@@ -302,8 +422,8 @@ class DataProcess:
                     x1_dict[i * TIME_PER_READING] = y1[i]
                 for i in x2:
                     x2_dict[i * TIME_PER_READING] = y2[i]
-                # for i in x3:
-                #     x3_dict[i * TIME_PER_READING] = y3_ext[i]
+                for i in x3:
+                    x3_dict[i * TIME_PER_READING] = y3_ext[i]
 
                 for segment in self.segments_chart:
                     start = int(segment[0])
@@ -311,19 +431,19 @@ class DataProcess:
 
                     x1_times_list = list(filter(lambda x: start <= x <= end, x1_dict))
                     x2_times_list = list(filter(lambda x: start <= x <= end, x2_dict))
-                    # x3_times_list = list(filter(lambda x: start <= x <= end, x3_dict))
+                    x3_times_list = list(filter(lambda x: start <= x <= end, x3_dict))
 
                     y1_values = [x1_dict[value] for value in x1_times_list]
                     y2_values = [x2_dict[value] for value in x2_times_list]
-                    # y3_values = [x3_dict[value] for value in x3_times_list]
+                    y3_values = [x3_dict[value] for value in x3_times_list]
 
                     chart_titles = f'{chart_title} | интервал {start}:{end}'
                     plot_names = f'{str(plot_name)}_{start}_{end}'
 
                     draw_plot(
-                        x1=x1_times_list, y1=y1_values, label1=label1,
+                        # x1=x1_times_list, y1=y1_values, label1=label1,
                         x2=x2_times_list, y2=y2_values, label2=label2,
-                        # x3=x3_times_list, y3=y3_values, label3=label3,
+                        x3=x3_times_list, y3=y3_values, label3=label3,
                         path_to_save=path_to_save / Path(plot_names),
                         chart_title=chart_titles,
                     )

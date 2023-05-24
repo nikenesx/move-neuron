@@ -6,6 +6,7 @@ from keras.models import Sequential, load_model
 from keras.layers import Dense
 from keras.utils import to_categorical
 
+from charts_utils import save_accuracy_chart, save_loss_chart
 from constants import MoveTypes
 from data_process import DataProcess
 from settings import TrainModelOptions, SENSORS_COUNT
@@ -30,16 +31,17 @@ class Network:
             self.TRAINED_MODEL = load_model(self.MODEL_NAME)
 
     def train_model(self) -> None:
-        if self.TRAINED_MODEL:
-            print(f'Найдена обученная модель {self.MODEL_NAME}. Обучить новую?')
-            answer = input('Да/нет? : ')
-            if answer.strip().lower() != 'да':
-                return
+        # if self.TRAINED_MODEL:
+        #     print(f'Найдена обученная модель {self.MODEL_NAME}. Обучить новую?')
+        #     answer = input('Да/нет? : ')
+        #     if answer.strip().lower() != 'да':
+        #         return
 
         data_process = DataProcess()
         sensor_data_vectors = data_process.get_normalized_dataset_to_fit_model()
 
         input_vectors, result_values = self.get_input_and_expected_vectors(input_data=sensor_data_vectors)
+        print(len(input_vectors))
 
         input_vectors = np.array(input_vectors)
         result_values_cat = to_categorical(np.array(result_values), len(MoveTypes.NUMS))
@@ -52,14 +54,14 @@ class Network:
         input_vectors, result_values_cat = input_vectors[test_len:], result_values_cat[test_len:]
 
         model = Sequential([
-            Dense(128, activation='relu'),
-            Dense(64, activation='relu'),
+            Dense(1024, activation='relu'),
+            Dense(512, activation='relu'),
             Dense(6, activation='softmax')
         ])
 
         model.compile(loss="categorical_crossentropy", optimizer="nadam", metrics=['accuracy'])
 
-        model.fit(
+        history = model.fit(
             x=input_vectors,
             y=result_values_cat,
             epochs=TrainModelOptions.EPOCHS_COUNT,
@@ -71,6 +73,9 @@ class Network:
         accuracy = model.evaluate(input_vectors_test, result_values_cat_test)
         accuracy_value = round(float(accuracy[1] * 100), 2)
         print(f'Точность: {accuracy_value}%')
+
+        save_accuracy_chart(fitted_model=model, model_history=history, batch_size=TrainModelOptions.BATCH_SIZE)
+        save_loss_chart(fitted_model=model, model_history=history, batch_size=TrainModelOptions.BATCH_SIZE)
 
     @staticmethod
     def unison_shuffled_copies(first_collection, second_collection):

@@ -40,7 +40,8 @@ class PredictMove:
         Определить тип движения через нейронную сеть
         """
         vector = np.expand_dims(vector, axis=0)
-        return self.network.TRAINED_MODEL.predict(vector, verbose=0)
+        predicted_value = self.network.TRAINED_MODEL.predict(vector, verbose=0)
+        return int(np.argmax(predicted_value))
 
     def process_different_moves_file(
         self,
@@ -52,7 +53,7 @@ class PredictMove:
         """
         Обработать файл с разными движениями
         """
-        dataset = self.data_process.get_normalized_different_moves_dataset()
+        dataset = self.data_process.get_normalized_different_moves_dataset()[:5000]
         if values_count:
             dataset = dataset[:values_count]
 
@@ -75,11 +76,11 @@ class PredictMove:
         """
         Сохранить график с результатами
         """
-        results = [[res] * MAX_READINGS_COUNT for res in results]
-        results_t = []
-        for lst in results:
-            results_t = list(chain(results_t, lst))
-        results = results_t
+        # results = [[res] * MAX_READINGS_COUNT for res in results]
+        # results_t = []
+        # for lst in results:
+        #     results_t = list(chain(results_t, lst))
+        # results = results_t
 
         x = list(map(lambda val: val * TIME_PER_READING, range(len(results))))
         chart_name = f'results_{processing}'
@@ -92,4 +93,4 @@ class PredictMove:
 
 if __name__ == '__main__':
     pr = PredictMove()
-    pr.process_different_moves_file(processing=ProcessingType.FUNCTION, values_count=250)
+    pr.process_different_moves_file(processing=ProcessingType.NETWORK)

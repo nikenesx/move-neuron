@@ -10,23 +10,30 @@ SENSORS_COUNT: int = 4
 
 
 AVERAGE_READINGS_COUNT: int = 10
-MAX_READINGS_COUNT: int = 20
+MAX_READINGS_COUNT: int = 150
+MAX_READINGS_COUNT_MEDIAN: int = 19
 
 TIME_PER_READING = 0.002
 
 # Директория с входными данными.
 DATASET_PATH: str = 'datasets/dataset3'
 
-DATASET_PATHS: list[str] = ['datasets/dataset4']
-DIFFERENT_MOVES_PATH: str = 'datasets/different_moves5.txt'
+DATASET_PATHS: list[str] = ['datasets/dataset7']
+DIFFERENT_MOVES_PATH: str = 'datasets/differentmoves_ma.txt'
 
 VALUES_THRESHOLDS = {
-    'fist': {'sensor': 1, 'threshold': 130},
-    'lead': {'sensor': 0, 'threshold': 75},
+    # Кулак
+    'fist': {'sensor': 1, 'threshold': 180},
+    # Отведение
+    'lead': {'sensor': 0, 'threshold': 65},
+    # Чилл
     'rest': {'sensor': 0, 'threshold': 0},
-    'cast': {'sensor': 3, 'threshold': 120},
-    'extension': {'sensor': 3, 'threshold': 130},
-    'bending': {'sensor': 1, 'threshold': 260},
+    # Приведение
+    'cast': {'sensor': 3, 'threshold': 155},
+    # Разгибание
+    'extension': {'sensor': 3, 'threshold': 155},
+    # Сгибание
+    'bending': {'sensor': 1, 'threshold': 180},
 }
 
 
@@ -49,12 +56,12 @@ class TrainModelOptions:
     # Позволяет быстрее обучаться сети.
     # Возможные значения: от 0 до 10.000
     # Рекомендованные значения: от 10 до 1.000
-    BATCH_SIZE: int = 100
+    BATCH_SIZE: int = 50
 
     # Количество эпох обучения. Определяет, сколько раз будут прогоняться входные данные. Подача всех векторов на вход
     # для обучения один раз = 1 эпоха.
     # Возможные значения: от 1 до ∞
-    EPOCHS_COUNT: int = 30
+    EPOCHS_COUNT: int = 10
 
     # Размер выборки валидации. Определяет, какой процент от входных данных будет использоваться для выборки валидации
     # (необходимо для предотвращения переобучения модели).
